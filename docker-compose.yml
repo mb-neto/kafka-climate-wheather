@@ -1,8 +1,30 @@
 ---
 version: '3'
 services:
+  postgres:
+    image: postgres:latest
+    ports:
+      - 15432:5432
+    volumes:
+      - /home/manoelbenedito/Documentos/faculdade/tcc/tmp/:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: "Admin1234" #user postgres
+
+  postgres-admin:
+    image: dpage/pgadmin4:latest
+    depends_on:
+      - postgres
+    ports:
+      - 15080:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "manoelneto164@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "Admin1234"
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    depends_on:
+      - postgres
+      - postgres-admin
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
