@@ -47,7 +47,7 @@ services:
     ports:
       - 9021:9021
     environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka:9092'
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka:29092'
       CONTROL_CENTER_REPLICATION_FACTOR: 1
       CONTROL_CENTER_CONNECT_CLUSTER: http://connect:8083
       PORT: 9021
@@ -61,7 +61,7 @@ services:
       - 8083:8083
     environment:
         LOG_LEVEL: DEBUG
-        CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+        CONNECT_BOOTSTRAP_SERVERS: kafka:29092
         CONNECT_GROUP_ID: pg-sink
         CONNECT_CONFIG_STORAGE_TOPIC: __pg.sink.config.storage
         CONNECT_STATUS_STORAGE_TOPIC: __pg.sink.status.storage

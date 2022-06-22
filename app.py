@@ -5,10 +5,10 @@ import os, sys
 import pandas as pd
 import numpy as np
 
-API_LINK='/home/manoelbenedito/Documentos/faculdade/tcc/dados/focos24h_estados_RN.csv'
+INPE_API_LINK='https://queimadas.dgi.inpe.br/api/focos/?pais_id=33&estado_id=13' # pais_id=33(br) e estado_id=13(amazonas)
 
-df = pd.read_csv(API_LINK, parse_dates=['data_hora_gmt'])
+df_queimadas = pd.read_json(INPE_API_LINK)
 
-print(df.head()) # Visualize dataframe head
+print(df_queimadas) # Visualize dataframe preview
 
-print(df.describe()) # Describes dataframe info
+print(df_queimadas.count()) # Data info
