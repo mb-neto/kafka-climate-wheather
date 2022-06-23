@@ -1,6 +1,8 @@
 import os, sys
 import psycopg2 as pg
 
+TABLE = (os.environ['PG_INPE_TABLE']) and os.environ['PG_INPE_TABLE'] or sys.exit(1)
+
 def verify_vars(**params):
     print('Verifying environment variables...')
     missing = False
@@ -18,9 +20,8 @@ def config_vars(database='inpe'):
 
     print('\nDatabase information: ')
     print('HOST:  {} \n\
-            PORT:  {} \n\
-            DB: {}'
-            .format(os.environ['PG_HOST'],os.environ['PG_PORT'], db))
+           PORT:  {} \n\
+           DB: {}'.format(os.environ['PG_HOST'],os.environ['PG_PORT'], db))
     
     params = {
         'host': os.environ['PG_HOST'],
@@ -34,13 +35,20 @@ def config_vars(database='inpe'):
 
     return params
 
-def create_
-
-def insert_firerisks_data(df):
+def create_fire_outbreaks_table():
     params = config_vars()
-    data_tp = [tuple(i) for i in df.to_numpy()]
-    data_col = ','.join(list(df.columns))
-    sql = "INSERT INTO firerisks VALUES(%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s)" % (data_col)
+    table_name = TABLE
+    sql = (
+        """
+        CREATE TABLE {}(
+            id VARCHAR(60) NOT NULL,
+            type VARCHAR(20) NOT NULL,
+            geometry_name VARCHAR(20) NOT NULL,
+            geometry VARCHAR(60) NOT NULL,
+            properties VARCHAR(255) NOT NULL
+        )
+        """.format(table_name)
+    )
 
     conn = None
 
@@ -49,10 +57,10 @@ def insert_firerisks_data(df):
         conn = pg.connect(**params)
         cursor = conn.cursor()
         print("Inserting data with dataframe.")
-        cursor.executemany(sql, data_tp)
-        conn.commit()
-        print("Data inserted.")
+        cursor.execute(sql)
         cursor.close()
+        conn.commit()
+        print("Table created.")
     except (Exception, pg.DatabaseError) as e:
         print("Connection failed.")
         conn.rollback()
@@ -69,3 +77,41 @@ def insert_firerisks_data(df):
             sys.exit(1)
     
     print("Connection closed with firerisks database.")
+
+def insert_firerisks_data(df):
+    params = config_vars()
+    data_tp = [tuple(i) for i in df.to_numpy()]
+    data_col = ','.join(list(df.columns))
+    data_tbl = TABLE
+    sql = "INSERT INTO %s(%s) VALUES(%%s, %%s, %%s, %%s, %%s)" % (data_tbl, data_col)
+
+    conn = None
+
+    try:
+        print("Connection with firerisks database.")
+        conn = pg.connect(**params)
+        cursor = conn.cursor()
+        print("Inserting data with dataframe.")
+        cursor.executemany(sql, data_tp)
+        cursor.close()
+        print("Data inserted.")
+        conn.commit()
+    except (Exception, pg.DatabaseError) as e:
+        print("Connection failed.")
+        conn.rollback()
+        cursor.close()
+        print(e)
+        sys.stdout.flush()
+        sys.exit(1)
+    finally:
+        if is not None:
+            conn.close()
+        else:
+            print("Failed to connect.")
+            sys.stdout.flush()
+            sys.exit(1)
+    
+    print("Connection closed with firerisks database.")
+
+if __name__ == '__main__':
+    create_fire_outbreaks_table()

@@ -5,10 +5,14 @@ services:
     image: postgres:latest
     ports:
       - 15432:5432
+    expose:
+      - "5432"
     volumes:
-      - /home/manoelbenedito/Documentos/faculdade/tcc/tmp/:/var/lib/postgresql/data
+      - ${PG_LOCAL_VOLUME}:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: "Admin1234" #user postgres
+      POSTGRES_USERNAME: ${PG_USERNAME}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_INPE_DB}
 
   postgres-admin:
     image: dpage/pgadmin4:latest
@@ -17,8 +21,17 @@ services:
     ports:
       - 15080:80
     environment:
-      PGADMIN_DEFAULT_EMAIL: "manoelneto164@gmail.com"
-      PGADMIN_DEFAULT_PASSWORD: "Admin1234"
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+
+  app:
+    build: .
+    depends_on:
+      - postgres
+    environment:
+      PG_HOST: postgres
+    env_file:
+      - .env.config
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -32,27 +45,17 @@ services:
       - zookeeper
     ports:
       - 9092:9092
+      - 9094:9094
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,OUTSIDE://localhost:9092
+      KAFKA_LISTENERS: INTERNAL://:9092,OUTSIDE://:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,OUTSIDE://localhost:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
   
-  control-center:
-    image: confluentinc/cp-enterprise-control-center:latest
-    depends_on:
-      - kafka
-    ports:
-      - 9021:9021
-    environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka:29092'
-      CONTROL_CENTER_REPLICATION_FACTOR: 1
-      CONTROL_CENTER_CONNECT_CLUSTER: http://connect:8083
-      PORT: 9021
-
-  connect:
+  kafka-connect:
     image: confluentinc/cp-kafka-connect:7.1.1
     depends_on:
       - zookeeper
@@ -61,7 +64,7 @@ services:
       - 8083:8083
     environment:
         LOG_LEVEL: DEBUG
-        CONNECT_BOOTSTRAP_SERVERS: kafka:29092
+        CONNECT_BOOTSTRAP_SERVERS: kafka:9092
         CONNECT_GROUP_ID: pg-sink
         CONNECT_CONFIG_STORAGE_TOPIC: __pg.sink.config.storage
         CONNECT_STATUS_STORAGE_TOPIC: __pg.sink.status.storage
@@ -71,5 +74,20 @@ services:
         CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
         CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
         CONNECT_REST_PORT: 8083
-        CONNECT_REST_ADVERTISED_HOST_NAME: "connect"
+        CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
         CONNECT_ZOOKEEPER_CONNECT: zookeeper:2181
+    command:
+    #TODO
+      - bash -c
+
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:latest
+    depends_on:
+      - kafka
+    ports:
+      - 9021:9021
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka:9092'
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_CONNECT_CLUSTER: http://kafka-connect:8083
+      PORT: 9021
