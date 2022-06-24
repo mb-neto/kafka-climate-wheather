@@ -1,34 +1,33 @@
 import os, sys
 import psycopg2 as pg
 
-TABLE = (os.environ['PG_INPE_TABLE']) and os.environ['PG_INPE_TABLE'] or sys.exit(1)
-
 def verify_vars(**params):
     print('Verifying environment variables...')
     missing = False
     for i in params:
-        if params[i] == None or params[i] == ''
+        if params[i] == None or params[i] == '':
             missing = True
             print(f'Environment variable missing. {i} is not filled, value is {params[i]}')
     if missing:
         sys.stdout.flush()
-        sys.exit()
+        sys.exit(1)
     print('Environment variables well fullfilled.')
 
-def config_vars(database='inpe'):
-    db = (database == 'inpe') and os.environ['PG_INPE_DB'] or os.environ['PG_INMET_DB']
-
+def config_vars():
     print('\nDatabase information: ')
-    print('HOST:  {} \n\
-           PORT:  {} \n\
-           DB: {}'.format(os.environ['PG_HOST'],os.environ['PG_PORT'], db))
+    print('HOST:  {}; PORT:  {}; DB: {}'
+    .format(
+        os.getenv('PG_SERVICE_HOST'), 
+        os.getenv('PG_SERVICE_PORT'), 
+        os.getenv('PG_INPE_DB'))
+    )
     
     params = {
-        'host': os.environ['PG_HOST'],
-        'port': os.environ['PG_PORT'],
-        'database': db,
-        'user': os.environ['PG_USERNAME'],
-        'password': os.environ['PG_PASSWORD']
+        'host': os.getenv('PG_SERVICE_HOST'),
+        'port': os.getenv('PG_SERVICE_PORT'),
+        'database': os.getenv('PG_INPE_DB'),
+        'user': os.getenv('PG_USERNAME'),
+        'password': os.getenv('PG_PASSWORD')
     }
 
     verify_vars(**params)
@@ -37,10 +36,10 @@ def config_vars(database='inpe'):
 
 def create_fire_outbreaks_table():
     params = config_vars()
-    table_name = TABLE
+    table_name = os.getenv('PG_INPE_TABLE')
     sql = (
         """
-        CREATE TABLE {}(
+        CREATE TABLE IF NOT EXISTS {}(
             id VARCHAR(60) NOT NULL,
             type VARCHAR(20) NOT NULL,
             geometry_name VARCHAR(20) NOT NULL,
@@ -69,7 +68,7 @@ def create_fire_outbreaks_table():
         sys.stdout.flush()
         sys.exit(1)
     finally:
-        if is not None:
+        if conn is not None:
             conn.close()
         else:
             print("Failed to connect.")
@@ -82,7 +81,7 @@ def insert_firerisks_data(df):
     params = config_vars()
     data_tp = [tuple(i) for i in df.to_numpy()]
     data_col = ','.join(list(df.columns))
-    data_tbl = TABLE
+    data_tbl = os.getenv('PG_INPE_TABLE')
     sql = "INSERT INTO %s(%s) VALUES(%%s, %%s, %%s, %%s, %%s)" % (data_tbl, data_col)
 
     conn = None
@@ -104,7 +103,7 @@ def insert_firerisks_data(df):
         sys.stdout.flush()
         sys.exit(1)
     finally:
-        if is not None:
+        if conn is not None:
             conn.close()
         else:
             print("Failed to connect.")

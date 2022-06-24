@@ -1,48 +1,57 @@
 ---
 version: '3'
 services:
-  postgres:
+  postgres-server:
     image: postgres:latest
+    restart: always
     ports:
       - 15432:5432
     expose:
       - "5432"
     volumes:
       - ${PG_LOCAL_VOLUME}:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USERNAME: ${PG_USERNAME}
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
-      POSTGRES_DB: ${PG_INPE_DB}
+    env_file:
+      - .env.config
+    networks:
+      - kafka-project
 
   postgres-admin:
     image: dpage/pgadmin4:latest
     depends_on:
-      - postgres
+      - postgres-server
     ports:
       - 15080:80
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    env_file:
+      - .env.config
+    networks:
+      - kafka-project
 
   app:
     build: .
     depends_on:
-      - postgres
-    environment:
-      PG_HOST: postgres
+      - postgres-server
     env_file:
       - .env.config
+    environment:
+      PG_SERVICE_HOST: postgres-server
+      PG_SERVICE_PORT: 5432
+    entrypoint: python3 database.py
+    networks:
+      - kafka-project
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - kafka-project
 
   kafka:
     image: confluentinc/cp-kafka:latest
     depends_on:
       - zookeeper
+      - postgres-server
     ports:
       - 9092:9092
       - 9094:9094
@@ -54,11 +63,12 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - kafka-project
   
   kafka-connect:
     image: confluentinc/cp-kafka-connect:7.1.1
     depends_on:
-      - zookeeper
       - kafka
     ports:
       - 8083:8083
@@ -76,9 +86,11 @@ services:
         CONNECT_REST_PORT: 8083
         CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
         CONNECT_ZOOKEEPER_CONNECT: zookeeper:2181
-    command:
-    #TODO
-      - bash -c
+    # command:
+    # TODO
+    #   - bash -c ls
+    networks:
+      - kafka-project
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:latest
@@ -91,3 +103,9 @@ services:
       CONTROL_CENTER_REPLICATION_FACTOR: 1
       CONTROL_CENTER_CONNECT_CLUSTER: http://kafka-connect:8083
       PORT: 9021
+    networks:
+      - kafka-project
+
+networks:
+  kafka-project:
+    driver: bridge
