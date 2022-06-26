@@ -17,17 +17,20 @@ print(f'API Link: ({INPE_API_LINK})')
 
 while (True):
     print("Sending request...")
-    df_queimadas = pd.read_json(INPE_API_LINK)
-    df_queimadas["geometry"] = df_queimadas["geometry"].map(lambda item: json.dumps(item))
-    df_queimadas["properties"] = df_queimadas["properties"].map(lambda item: json.dumps(item))
+    try:
+        df_queimadas = pd.read_json(INPE_API_LINK)
+        df_queimadas["geometry"] = df_queimadas["geometry"].map(lambda item: json.dumps(item))
+        df_queimadas["properties"] = df_queimadas["properties"].map(lambda item: json.dumps(item))
 
-    print("Data collected: ")
-    print(df_queimadas.head()) # Dataframe first row
-    print(df_queimadas.count()) # Data info
-    print(df_queimadas.columns) # Dataframe columns
+        print("Data collected: ")
+        print(df_queimadas.head()) # Dataframe first row
+        print(df_queimadas.count()) # Data info
+        print(df_queimadas.columns) # Dataframe columns
 
-    insert_firerisks_data(df_queimadas)
-
+        insert_firerisks_data(df_queimadas)
+    except Exception as e:
+        print(e)
+    
     print("Time interval!")
     time.sleep(600) #86400 (24h)
     print("End of time interval!".center(40, "#"))

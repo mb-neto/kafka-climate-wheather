@@ -11,7 +11,7 @@ services:
     volumes:
       - ${PG_LOCAL_VOLUME}:/var/lib/postgresql/data
     env_file:
-      - .env.config
+      - ./config/postgres.env
     networks:
       - kafka-project
 
@@ -22,7 +22,7 @@ services:
     ports:
       - 15080:80
     env_file:
-      - .env.config
+      - ./config/pgadmin.env
     networks:
       - kafka-project
 
@@ -31,19 +31,14 @@ services:
     depends_on:
       - postgres-server
     env_file:
-      - .env.config
-    environment:
-      PG_SERVICE_HOST: postgres-server
-      PG_SERVICE_PORT: 5432
-    entrypoint: python3 database.py
+      - ./config/data-app.env
     networks:
       - kafka-project
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+    env_file:
+      - ./config/zookeeper.env
     networks:
       - kafka-project
 
@@ -55,14 +50,8 @@ services:
     ports:
       - 9092:9092
       - 9094:9094
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: INTERNAL://:9092,OUTSIDE://:9094
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,OUTSIDE://localhost:9094
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    env_file:
+      - ./config/kafka.env
     networks:
       - kafka-project
   
@@ -72,20 +61,8 @@ services:
       - kafka
     ports:
       - 8083:8083
-    environment:
-        LOG_LEVEL: DEBUG
-        CONNECT_BOOTSTRAP_SERVERS: kafka:9092
-        CONNECT_GROUP_ID: pg-sink
-        CONNECT_CONFIG_STORAGE_TOPIC: __pg.sink.config.storage
-        CONNECT_STATUS_STORAGE_TOPIC: __pg.sink.status.storage
-        CONNECT_OFFSET_STORAGE_TOPIC: __pg.sink.offset.storage
-        CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-        CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-        CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-        CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-        CONNECT_REST_PORT: 8083
-        CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
-        CONNECT_ZOOKEEPER_CONNECT: zookeeper:2181
+    env_file:
+      - ./config/kafka-connect.env
     # command:
     # TODO
     #   - bash -c ls
@@ -98,11 +75,8 @@ services:
       - kafka
     ports:
       - 9021:9021
-    environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka:9092'
-      CONTROL_CENTER_REPLICATION_FACTOR: 1
-      CONTROL_CENTER_CONNECT_CLUSTER: http://kafka-connect:8083
-      PORT: 9021
+    env_file:
+      - ./config/control-center.env
     networks:
       - kafka-project
 
