@@ -32,6 +32,7 @@ services:
       - postgres-server
     env_file:
       - ./config/data-app.env
+    entrypoint: python3 -u app.py
     networks:
       - kafka-project
 
@@ -57,15 +58,24 @@ services:
   
   kafka-connect:
     image: confluentinc/cp-kafka-connect:7.1.1
+    restart: always
     depends_on:
       - kafka
     ports:
       - 8083:8083
     env_file:
       - ./config/kafka-connect.env
-    # command:
-    # TODO
-    #   - bash -c ls
+    command:
+      - bash
+      - -c
+      - |
+        echo "Installing Connector"
+        confluent-hub install --no-prompt debezium/debezium-connector-postgresql:1.9.2
+        #
+        echo "Launching Kafka Connect worker"
+        /etc/confluent/docker/run &
+        #
+        sleep infinity
     networks:
       - kafka-project
 
