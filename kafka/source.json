@@ -1,0 +1,16 @@
+{
+    "name": "pg-producer",
+    "config": {
+        "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+        "connection.url": "jdbc:postgresql://postgres-server:5432/firerisks?user=postgres&password=Admin1234",
+        "connection.user": "postgres",
+        "connection.password": "Admin1234",
+        "table.whitelist": "fire_outbreaks",
+        "mode": "incrementing",
+        "incrementing.column.name": "firerisks_id",
+        "db.timezone": "UTC",
+        "output.data.format": "JSON",
+		"topic.prefix": "public.",
+        "tasks.max": "1"
+    }
+}

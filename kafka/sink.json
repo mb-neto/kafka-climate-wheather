@@ -1,0 +1,16 @@
+{
+    "name": "pg-consumer",
+    "config": {
+        "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+        "tasks.max": "1",
+        "topics": "public.fire_outbreaks",
+        "connection.url": "jdbc:postgresql://postgres-server:5432/firerisks-copy?user=postgres&password=Admin1234",
+        "auto.create": "true",
+        "auto.evolve": "true",
+        "insert.mode": "upsert",
+        "pk.mode": "record_value",
+        "pk.fields": "firerisks_id",
+        "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "value.converter": "org.apache.kafka.connect.json.JsonConverter"
+    }
+}

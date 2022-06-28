@@ -10,6 +10,7 @@ services:
       - "5432"
     volumes:
       - ${PG_LOCAL_VOLUME}:/var/lib/postgresql/data
+      - ./config/postgres.conf:/var/lib/postgresql/data/postgresql.auto.conf
     env_file:
       - ./config/postgres.env
     networks:
@@ -70,7 +71,7 @@ services:
       - -c
       - |
         echo "Installing Connector"
-        confluent-hub install --no-prompt debezium/debezium-connector-postgresql:1.9.2
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.5.0
         #
         echo "Launching Kafka Connect worker"
         /etc/confluent/docker/run &

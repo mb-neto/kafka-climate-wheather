@@ -41,7 +41,8 @@ def create_fire_outbreaks_table():
     sql = (
         """
         CREATE TABLE IF NOT EXISTS {}(
-            id VARCHAR(100) NOT NULL,
+            firerisks_id SERIAL PRIMARY KEY,
+            id VARCHAR(100) UNIQUE NOT NULL,
             type VARCHAR(20) NOT NULL,
             geometry_name VARCHAR(20) NOT NULL,
             geometry VARCHAR(100) NOT NULL,
@@ -56,18 +57,15 @@ def create_fire_outbreaks_table():
         print("> Connection with firerisks database.")
         conn = pg.connect(**params)
         cursor = conn.cursor()
-        print("> Inserting data with dataframe.")
         cursor.execute(sql)
         cursor.close()
         conn.commit()
-        print("> Table created.")
+        print("> Table fire_outbreaks created.")
     except (Exception, pg.DatabaseError) as e:
         print("> Connection failed.")
         conn.rollback()
         cursor.close()
         print(e)
-        sys.stdout.flush()
-        sys.exit(1)
     finally:
         if conn is not None:
             conn.close()
@@ -101,8 +99,6 @@ def insert_firerisks_data(df):
         conn.rollback()
         cursor.close()
         print(e)
-        sys.stdout.flush()
-        sys.exit(1)
     finally:
         if conn is not None:
             conn.close()

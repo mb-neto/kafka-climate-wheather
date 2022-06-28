@@ -28,7 +28,7 @@ while (True):
         df_queimadas["properties"] = df_queimadas["properties"].map(lambda item: json.dumps(item))
 
         _print("\n> Data collected: ")
-        print(df_queimadas.head()) # Dataframe first row
+        print(df_queimadas.head())  # Dataframe first row
         print(df_queimadas.count()) # Data info
         print(df_queimadas.columns) # Dataframe columns
 
@@ -40,6 +40,6 @@ while (True):
         time.sleep(300)
         _print("Restart!".center(40, "-"))
     else:
-        _print("> Time interval!")
-        time.sleep(86400) #86400 (24h)
+        _print("> Time interval! (24h)")
+        time.sleep(86400000) #86400 (24h)
         _print("End of time interval!".center(40, "#") + "\n")
