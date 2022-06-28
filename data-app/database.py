@@ -17,14 +17,15 @@ def config_vars():
     print('\nDatabase information: ')
     print('HOST:  {}; PORT:  {}; DB: {}'
     .format(
-        os.getenv('PG_SERVICE_HOST'), 
-        os.getenv('PG_SERVICE_PORT'), 
-        os.getenv('PG_INPE_DB'))
+        os.getenv('PG_HOST'), 
+        os.getenv('PG_PORT'), 
+        os.getenv('PG_INPE_DB')
+        )
     )
     
     params = {
-        'host': os.getenv('PG_SERVICE_HOST'),
-        'port': os.getenv('PG_SERVICE_PORT'),
+        'host': os.getenv('PG_HOST'),
+        'port': os.getenv('PG_PORT'),
         'database': os.getenv('PG_INPE_DB'),
         'user': os.getenv('PG_USERNAME'),
         'password': os.getenv('PG_PASSWORD')
@@ -40,11 +41,11 @@ def create_fire_outbreaks_table():
     sql = (
         """
         CREATE TABLE IF NOT EXISTS {}(
-            id VARCHAR(60) NOT NULL,
+            id VARCHAR(100) NOT NULL,
             type VARCHAR(20) NOT NULL,
             geometry_name VARCHAR(20) NOT NULL,
-            geometry VARCHAR(60) NOT NULL,
-            properties VARCHAR(255) NOT NULL
+            geometry VARCHAR(100) NOT NULL,
+            properties TEXT NOT NULL
         )
         """.format(table_name)
     )
@@ -52,16 +53,16 @@ def create_fire_outbreaks_table():
     conn = None
 
     try:
-        print("Connection with firerisks database.")
+        print("> Connection with firerisks database.")
         conn = pg.connect(**params)
         cursor = conn.cursor()
-        print("Inserting data with dataframe.")
+        print("> Inserting data with dataframe.")
         cursor.execute(sql)
         cursor.close()
         conn.commit()
-        print("Table created.")
+        print("> Table created.")
     except (Exception, pg.DatabaseError) as e:
-        print("Connection failed.")
+        print("> Connection failed.")
         conn.rollback()
         cursor.close()
         print(e)
@@ -71,11 +72,11 @@ def create_fire_outbreaks_table():
         if conn is not None:
             conn.close()
         else:
-            print("Failed to connect.")
+            print("> Failed to connect.")
             sys.stdout.flush()
             sys.exit(1)
     
-    print("Connection closed with firerisks database.")
+    print("> Connection closed with firerisks database.")
 
 def insert_firerisks_data(df):
     params = config_vars()
@@ -87,16 +88,16 @@ def insert_firerisks_data(df):
     conn = None
 
     try:
-        print("Connection with firerisks database.")
+        print("> Connection with firerisks database.")
         conn = pg.connect(**params)
         cursor = conn.cursor()
-        print("Inserting data with dataframe.")
+        print("> Inserting data with dataframe.")
         cursor.executemany(sql, data_tp)
         cursor.close()
-        print("Data inserted.")
+        print("> Data inserted.")
         conn.commit()
     except (Exception, pg.DatabaseError) as e:
-        print("Connection failed.")
+        print("> Connection failed.")
         conn.rollback()
         cursor.close()
         print(e)
@@ -106,11 +107,11 @@ def insert_firerisks_data(df):
         if conn is not None:
             conn.close()
         else:
-            print("Failed to connect.")
+            print("> Failed to connect.")
             sys.stdout.flush()
             sys.exit(1)
     
-    print("Connection closed with firerisks database.")
+    print("> Connection closed with firerisks database.")
 
 if __name__ == '__main__':
     create_fire_outbreaks_table()

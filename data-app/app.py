@@ -27,10 +27,10 @@ while (True):
         df_queimadas["geometry"] = df_queimadas["geometry"].map(lambda item: json.dumps(item))
         df_queimadas["properties"] = df_queimadas["properties"].map(lambda item: json.dumps(item))
 
-        _print("   Data collected: ")
-        _print(df_queimadas.head()) # Dataframe first row
-        _print(df_queimadas.count()) # Data info
-        _print(df_queimadas.columns) # Dataframe columns
+        _print("\n> Data collected: ")
+        print(df_queimadas.head()) # Dataframe first row
+        print(df_queimadas.count()) # Data info
+        print(df_queimadas.columns) # Dataframe columns
 
         insert_firerisks_data(df_queimadas)
     except Exception as e:
@@ -41,5 +41,5 @@ while (True):
         _print("Restart!".center(40, "-"))
     else:
         _print("> Time interval!")
-        time.sleep(600) #86400 (24h)
+        time.sleep(86400) #86400 (24h)
         _print("End of time interval!".center(40, "#") + "\n")
