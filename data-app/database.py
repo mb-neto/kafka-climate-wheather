@@ -2,20 +2,20 @@ import os, sys
 import psycopg2 as pg
 
 def verify_vars(**params):
-    print('Verifying environment variables...')
+    print('> Verifying environment variables...')
     missing = False
     for i in params:
         if not params.get(i):
             missing = True
-            print(f"Environment variable missing. {i} is not filled, value is {params[i]}")
+            print(f"Environment variable missing. {i} is not set, value is {params[i]}")
     if missing:
         sys.stdout.flush()
         sys.exit(1)
-    print('Environment variables well fullfilled.')
+    print('> Environment variables set.')
 
 def config_vars():
-    print('\nDatabase information: ')
-    print(f"HOST:  {os.getenv('PG_HOST')}; PORT:  {os.getenv('PG_PORT')}; DB: {os.getenv('PG_INPE_DB')}")
+    print('\n> Database information: ')
+    print(f"  HOST:  {os.getenv('PG_HOST')}\n  PORT:  {os.getenv('PG_PORT')}\n  DB: {os.getenv('PG_INPE_DB')}")
     
     params = {
         'host': os.getenv('PG_HOST'),
