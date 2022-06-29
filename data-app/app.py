@@ -3,10 +3,10 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import json, time
-from database import insert_firerisks_data
+from database import upsert_firerisks_data
 
 def _print(*args, **kw):
-    print("[%s]" % (datetime.now()), *args, **kw)
+    print(f'[{datetime.now()}]', *args, **kw)
 
 #INPE: https://queimadas.dgi.inpe.br/queimadas/dados-abertos/#
 
@@ -32,7 +32,7 @@ while (True):
         print(df_queimadas.count()) # Data info
         print(df_queimadas.columns) # Dataframe columns
 
-        insert_firerisks_data(df_queimadas)
+        upsert_firerisks_data(df_queimadas)
     except Exception as e:
         _print("> Request failed!")
         _print(e)
