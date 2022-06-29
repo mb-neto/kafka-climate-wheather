@@ -1,12 +1,10 @@
 import os, sys
 import pandas as pd
 import numpy as np
-from datetime import datetime
 import json, time
+from utils import _print, _error, _warning
 from database import upsert_firerisks_data
 
-def _print(*args, **kw):
-    print(f'[{datetime.now()}]', *args, **kw)
 
 #INPE: https://queimadas.dgi.inpe.br/queimadas/dados-abertos/#
 
@@ -27,18 +25,18 @@ while (True):
         df_queimadas["geometry"] = df_queimadas["geometry"].map(lambda item: json.dumps(item))
         df_queimadas["properties"] = df_queimadas["properties"].map(lambda item: json.dumps(item))
 
-        _print("\n> Data collected: ")
+        _print("> Data collected: ")
         print(df_queimadas.head())  # Dataframe first row
         print(df_queimadas.count()) # Data info
         print(df_queimadas.columns) # Dataframe columns
 
         upsert_firerisks_data(df_queimadas)
     except Exception as e:
-        _print("> Request failed!")
-        _print(e)
-        _print("> Trying again in 5min...")
+        _error("> Request failed!")
+        _error(e)
+        _warning("> Trying again in 5min...")
         time.sleep(300)
-        _print("Restart!".center(40, "-"))
+        _warning("Restart!".center(40, "-"))
     else:
         _print("> Time interval! (24h)")
         time.sleep(86400000) #86400 (24h)
