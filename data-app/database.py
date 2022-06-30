@@ -76,7 +76,7 @@ def create_fire_outbreaks_table():
         print("> Connection failed.")
         conn.rollback()
         cursor.close()
-        raise print(e)
+        raise e
     finally:
         if conn is not None:
             conn.close()
@@ -115,7 +115,7 @@ def upsert_firerisks_data(df):
         print("> Connection failed.")
         conn.rollback()
         cursor.close()
-        raise print(e)
+        print(e)
     finally:
         if conn is not None:
             conn.close()
